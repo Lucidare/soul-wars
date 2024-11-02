@@ -6,17 +6,21 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.HitsplatApplied;
+import net.runelite.api.kit.KitType;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
-import net.runelite.client.party.PartyMember;
 import net.runelite.client.party.PartyService;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+
+import java.util.Optional;
+
 import static net.runelite.api.NpcID.*;
 
 @Slf4j
@@ -42,10 +46,6 @@ public static final int WOLF_10533 = 10533;
 	private static final ImmutableSet<Integer> SOUL_WARS_ARENA_REGIONS = ImmutableSet.of(
 			8493, 8749, 9005
 	);
-	// 2167, 2893 | 2157, 2893 | 2167, 2903 | 2157, 2903 blue graveyard
-	// 2248, 2930 | 2258, 2930 | 2248, 2920 | 2258, 2920 red graveyard
-
-	// 2199 - 2214 - 2919 - 2904 Soul
 
 
 	@Inject
@@ -63,7 +63,7 @@ public static final int WOLF_10533 = 10533;
 	private SoulWarsManager soulWarsManager;
 
 	private int currentRegionId = -1;
-	private boolean currentInGame = false;
+	private SoulWarsTeam team = SoulWarsTeam.NONE;
 
 	@Override
 	protected void startUp() throws Exception
@@ -128,21 +128,35 @@ public static final int WOLF_10533 = 10533;
 	}
 
 	@Subscribe
+	void onChatMessage(final ChatMessage event)
+	{
+		final ChatMessageType type = event.getType();
+
+		if (type == ChatMessageType.SPAM || type == ChatMessageType.GAMEMESSAGE)
+		{
+			log.info(event.getMessage());
+			soulWarsManager.parseChatMessage(event.getMessage(), getWorldPoint(), SoulWarsTeam.RED);
+		}
+	}
+
+	@Subscribe
 	public void onGameTick(GameTick tick)
 	{
-		final int regionId = getRegionId();
+		final int regionId = getWorldPoint().isPresent() ? getWorldPoint().get().getRegionID() : -1;
 		if (currentRegionId != regionId) {
 			currentRegionId = regionId;
 		}
-		// Either entered game or left game
-		if (currentInGame != inSoulWarsGame()) {
-			currentInGame = inSoulWarsGame();
+		// entered game
+		if (inSoulWarsGame() && team == SoulWarsTeam.NONE) {
+			checkTeam();
 			soulWarsManager.reset();
+			soulWarsManager.init();
+		}
 
-			// new game reset
-			if (currentInGame) {
-				soulWarsManager.init();
-			}
+		// left game
+		if (!inSoulWarsGame() && team != SoulWarsTeam.NONE) {
+			team = SoulWarsTeam.NONE;
+			soulWarsManager.reset();
 		}
 	}
 
@@ -156,13 +170,29 @@ public static final int WOLF_10533 = 10533;
 		return player.getWorldView().isInstance() && SOUL_WARS_ARENA_REGIONS.contains(currentRegionId);
 	}
 
-	private int getRegionId()
+	private void checkTeam()
 	{
 		Player player = client.getLocalPlayer();
 		if (player == null)
 		{
-			return -1;
+			return;
 		}
-		return WorldPoint.fromLocalInstance(client, player.getLocalLocation()).getRegionID();
+		int capeId = player.getPlayerComposition().getEquipmentId(KitType.CAPE);
+		log.info(Integer.toString(capeId));
+		if (capeId == SoulWarsTeam.BLUE.getItemId()) {
+			team = SoulWarsTeam.BLUE;
+		} else if (capeId == SoulWarsTeam.RED.getItemId()) {
+			team = SoulWarsTeam.RED;
+		}
+	}
+
+	private Optional<WorldPoint> getWorldPoint()
+	{
+		Player player = client.getLocalPlayer();
+		if (player == null)
+		{
+			return Optional.empty();
+		}
+		return Optional.of(WorldPoint.fromLocalInstance(client, player.getLocalLocation()));
 	}
 }

@@ -2,6 +2,7 @@ package com.soulwars;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import net.runelite.api.Item;
 import net.runelite.api.ItemID;
 
 public enum SoulWarsResource {
@@ -15,9 +16,24 @@ public enum SoulWarsResource {
     @Getter(AccessLevel.PACKAGE)
     private final int itemId;
 
-    SoulWarsResource(final String name, final int itemId)
-    {
+    SoulWarsResource(final String name, final int itemId) {
         this.name = name;
+        this.itemId = itemId;
+    }
+}
+
+enum SoulWarsTeam {
+    NONE("", -1),
+    RED("<col=ff3232>The red team", ItemID.RED_CAPE_25207),
+    BLUE("<col=3366ff>The blue team", ItemID.BLUE_CAPE_25208);
+
+    @Getter(AccessLevel.PACKAGE)
+    private final String prefix;
+    @Getter(AccessLevel.PACKAGE)
+    private final int itemId;
+
+    SoulWarsTeam(final String prefix, final int itemId) {
+        this.prefix = prefix;
         this.itemId = itemId;
     }
 }
