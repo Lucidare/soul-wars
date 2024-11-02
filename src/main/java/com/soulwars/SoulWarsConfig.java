@@ -6,9 +6,11 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup("soulwars")
+@ConfigGroup(SoulWarsConfig.CONFIG_GROUP)
 public interface SoulWarsConfig extends Config
 {
+	String CONFIG_GROUP = "soul-wars";
+
 	@ConfigItem(
 			keyName = "trackingMode",
 			name = "Tracking Mode",
@@ -17,16 +19,16 @@ public interface SoulWarsConfig extends Config
 	)
 	default TrackingMode trackingMode()
 	{
-		return TrackingMode.DECREMENT;
+		return TrackingMode.INCREMENT;
 	}
 
 	@ConfigItem(
-			keyName = "removedWhenCompleted",
-			name = "Remove when completed",
+			keyName = "removedWhenGoalReached",
+			name = "Remove when goal reached",
 			description = "Remove counters when desired number is reached.",
 			position = 2
 	)
-	default boolean removedWhenCompleted()
+	default boolean removedWhenGoalReached()
 	{
 		return false;
 	}
