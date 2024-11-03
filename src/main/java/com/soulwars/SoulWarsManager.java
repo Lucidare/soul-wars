@@ -29,7 +29,6 @@ public class SoulWarsManager {
     private ItemManager itemManager;
     @Inject
     private InfoBoxManager infoBoxManager;
-    private boolean inSoulWarsGame = false;
 
     private final EnumMap<SoulWarsResource, SoulWarsInfoBox> resourceToInfoBox = new EnumMap<>(SoulWarsResource.class);
     private final EnumMap<SoulWarsResource, Integer> resourceToTrackedNumber = new EnumMap<>(SoulWarsResource.class);
@@ -38,17 +37,31 @@ public class SoulWarsManager {
     private final WorldArea east_graveyard = new WorldArea(2248, 2920, 11, 11, 0);
     private final WorldArea obelisk = new WorldArea(2199, 2904, 16, 16, 0);
 
-    void init()
+    private SoulWarsTeam team = SoulWarsTeam.NONE;
+
+    void init(SoulWarsTeam soulWarsTeam)
     {
-        inSoulWarsGame = true;
+        team = soulWarsTeam;
         createInfoBoxesFromConfig();
     }
 
     private void createInfoBox(final SoulWarsResource resource, final int goal)
     {
         final boolean isDecrement = config.trackingMode() == TrackingMode.DECREMENT;
+
+        int itemId = resource.getItemId();
+
+        // update captures image to be team cape instead of default obe
+        if (resource == SoulWarsResource.CAPTURES) {
+            if (team == SoulWarsTeam.RED)
+            {
+                itemId = SoulWarsTeam.RED.getItemId();
+            } else if (team == SoulWarsTeam.BLUE) {
+                itemId = SoulWarsTeam.BLUE.getItemId();
+            }
+        }
         final SoulWarsInfoBox infoBox = new SoulWarsInfoBox(
-                itemManager.getImage(resource.getItemId()),
+                itemManager.getImage(itemId),
                 plugin,
                 goal,
                 isDecrement,
@@ -102,14 +115,14 @@ public class SoulWarsManager {
 
     public void reset()
     {
-        inSoulWarsGame = false;
+        team = SoulWarsTeam.NONE;
         resourceToTrackedNumber.clear();
         infoBoxManager.removeIf(SoulWarsInfoBox.class::isInstance);
     }
 
-    void parseChatMessage(final String chatMessage, final Optional<WorldPoint> location, final SoulWarsTeam team, final int numFragments)
+    void parseChatMessage(final String chatMessage, final Optional<WorldPoint> location, final int numFragments)
     {
-        if (!inSoulWarsGame)
+        if (team == SoulWarsTeam.NONE)
         {
             return;
         }

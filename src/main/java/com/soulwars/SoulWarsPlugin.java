@@ -29,16 +29,6 @@ import static net.runelite.api.NpcID.*;
 
 public class SoulWarsPlugin extends Plugin
 {
-//		int red_obe = 40451,
-//		int blue_obe = 40450,
-	private static final ImmutableSet<Integer> AVATARS_IDS = ImmutableSet.of(
-			AVATAR_OF_CREATION_10531, AVATAR_OF_DESTRUCTION_10532
-	);
-	private static final ImmutableSet<Integer> SOUL_WARS_ARENA_REGIONS = ImmutableSet.of(
-			8493, 8749, 9005
-	);
-
-
 	@Inject
 	private Client client;
 
@@ -53,15 +43,34 @@ public class SoulWarsPlugin extends Plugin
 	@Inject
 	private SoulWarsManager soulWarsManager;
 
-	private int currentRegionId = -1;
+	private static final ImmutableSet<Integer> AVATARS_IDS = ImmutableSet.of(
+			AVATAR_OF_CREATION_10531, AVATAR_OF_DESTRUCTION_10532
+	);
+	private static final int VARBIT_SOUL_WARS = 3815;
 	private SoulWarsTeam team = SoulWarsTeam.NONE;
 	private int numFragments = 0;
+	//		int red_obelisk = 40451
+	//		int blue_obelisk = 40450
 
 	@Override
 	protected void startUp() throws Exception
 	{
+		// Weird edge case: Turned on plugin while in game
+		// determine team by checking cape instead
+		Player player = client.getLocalPlayer();
+		if (player == null)
+		{
+			return;
+		}
+		int capeId = player.getPlayerComposition().getEquipmentId(KitType.CAPE);
+		if (capeId == SoulWarsTeam.BLUE.getItemId()) {
+			team = SoulWarsTeam.BLUE;
+		} else if (capeId == SoulWarsTeam.RED.getItemId()) {
+			team = SoulWarsTeam.RED;
+		}
+
 		if (inSoulWarsGame()) {
-			soulWarsManager.init();
+			soulWarsManager.init(team);
 		}
 	}
 
@@ -126,29 +135,7 @@ public class SoulWarsPlugin extends Plugin
 
 		if (type == ChatMessageType.SPAM || type == ChatMessageType.GAMEMESSAGE)
 		{
-			log.info(event.getMessage());
-			soulWarsManager.parseChatMessage(event.getMessage(), getWorldPoint(), team, numFragments);
-		}
-	}
-
-	@Subscribe
-	public void onGameTick(GameTick tick)
-	{
-		final int regionId = getWorldPoint().isPresent() ? getWorldPoint().get().getRegionID() : -1;
-		if (currentRegionId != regionId) {
-			currentRegionId = regionId;
-		}
-		// entered game
-		if (inSoulWarsGame() && team == SoulWarsTeam.NONE) {
-			checkTeam();
-			soulWarsManager.reset();
-			soulWarsManager.init();
-		}
-
-		// left game
-		if (!inSoulWarsGame() && team != SoulWarsTeam.NONE) {
-			team = SoulWarsTeam.NONE;
-			soulWarsManager.reset();
+			soulWarsManager.parseChatMessage(event.getMessage(), getWorldPoint(), numFragments);
 		}
 	}
 
@@ -172,27 +159,33 @@ public class SoulWarsPlugin extends Plugin
 
 	private boolean inSoulWarsGame()
 	{
-		Player player = client.getLocalPlayer();
-		if (player == null)
-		{
-			return false;
-		}
-		return player.getWorldView().isInstance() && SOUL_WARS_ARENA_REGIONS.contains(currentRegionId);
+		return team != SoulWarsTeam.NONE;
 	}
 
-	private void checkTeam()
+	@Subscribe
+	void onVarbitChanged(final VarbitChanged event)
 	{
-		Player player = client.getLocalPlayer();
-		if (player == null)
+		final int varbit = event.getVarbitId();
+
+		if (varbit == VARBIT_SOUL_WARS)
 		{
-			return;
-		}
-		int capeId = player.getPlayerComposition().getEquipmentId(KitType.CAPE);
-		log.info(Integer.toString(capeId));
-		if (capeId == SoulWarsTeam.BLUE.getItemId()) {
-			team = SoulWarsTeam.BLUE;
-		} else if (capeId == SoulWarsTeam.RED.getItemId()) {
-			team = SoulWarsTeam.RED;
+			int teamNum = event.getValue();
+
+			// joined game
+			if (teamNum != 0) {
+				if (teamNum == SoulWarsTeam.BLUE.getVarbitNum()) {
+					team = SoulWarsTeam.BLUE;
+				} else if (teamNum == SoulWarsTeam.RED.getVarbitNum()) {
+					team = SoulWarsTeam.RED;
+				}
+				soulWarsManager.reset();
+				soulWarsManager.init(team);
+			}
+			// left game
+			else {
+				team = SoulWarsTeam.NONE;
+				soulWarsManager.reset();
+			}
 		}
 	}
 
