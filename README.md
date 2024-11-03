@@ -10,7 +10,7 @@ Set the target goals in the config.
 
 ## Screenshots
 
-![Default Config](images/default_configs.png) ![Infoboxes](images/infoboxes.png) ![Results](images/results.png)
+![Default Config](images/default_config.png) ![Infoboxes](images/infoboxes.png) ![Results](images/results.png)
 
 ## License
 This plugin is licensed under the BSD 2-Clause License. See the [LICENSE](LICENSE) file for details.
