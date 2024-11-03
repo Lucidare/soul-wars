@@ -128,24 +128,25 @@ public class SoulWarsPlugin extends Plugin
 
 		if (type == ChatMessageType.SPAM || type == ChatMessageType.GAMEMESSAGE)
 		{
-			soulWarsManager.parseChatMessage(event.getMessage(), getWorldPoint(), numFragments);
+			soulWarsManager.parseChatMessage(event.getMessage(), getWorldPoint());
 		}
 	}
 
 	@Subscribe
 	public void onItemContainerChanged(final ItemContainerChanged event) {
 		// Update inventory, update shard count
+		boolean foundFragments = false;
 		if (event.getContainerId() == InventoryID.INVENTORY.getId()) {
 			ItemContainer inventory = event.getItemContainer();
 			for (final Item item : inventory.getItems()) {
 				if (item.getId() == SoulWarsResource.FRAGMENTS_SACRIFICED.getItemId()) {
-					int prevNumFragments = numFragments;
-					numFragments = item.getQuantity();
-					// num fragments decrease so sacrificed but potentially some remain due to low avatar strength
-					if (prevNumFragments > numFragments) {
-						soulWarsManager.decreaseFragmentsSacrificed(numFragments);
-					}
+					foundFragments = true;
+					soulWarsManager.updateFragmentInInventoryCount(item.getQuantity());
 				}
+			}
+			// no fragments in inventory
+			if (!foundFragments) {
+				soulWarsManager.updateFragmentInInventoryCount(0);
 			}
 		}
 	}
