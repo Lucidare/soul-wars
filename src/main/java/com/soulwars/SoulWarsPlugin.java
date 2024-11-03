@@ -128,7 +128,7 @@ public class SoulWarsPlugin extends Plugin
 
 		if (type == ChatMessageType.SPAM || type == ChatMessageType.GAMEMESSAGE)
 		{
-			soulWarsManager.parseChatMessage(event.getMessage(), getWorldPoint(), numFragments);
+			soulWarsManager.parseChatMessage(event.getMessage(), getWorldPoint());
 		}
 	}
 
@@ -139,12 +139,7 @@ public class SoulWarsPlugin extends Plugin
 			ItemContainer inventory = event.getItemContainer();
 			for (final Item item : inventory.getItems()) {
 				if (item.getId() == SoulWarsResource.FRAGMENTS_SACRIFICED.getItemId()) {
-					int prevNumFragments = numFragments;
-					numFragments = item.getQuantity();
-					// num fragments decrease so sacrificed but potentially some remain due to low avatar strength
-					if (prevNumFragments > numFragments) {
-						soulWarsManager.decreaseFragmentsSacrificed(numFragments);
-					}
+					soulWarsManager.updateFragmentInInventoryCount(item.getQuantity());
 				}
 			}
 		}

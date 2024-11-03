@@ -37,10 +37,12 @@ public class SoulWarsManager {
     private final WorldArea obelisk = new WorldArea(2199, 2904, 16, 16, 0);
 
     private SoulWarsTeam team = SoulWarsTeam.NONE;
+    private int inventoryFragments;
 
     void init(SoulWarsTeam soulWarsTeam)
     {
         team = soulWarsTeam;
+        inventoryFragments = 0;
         createInfoBoxesFromConfig();
     }
 
@@ -115,11 +117,12 @@ public class SoulWarsManager {
     public void reset()
     {
         team = SoulWarsTeam.NONE;
+        inventoryFragments = 0;
         resourceToTrackedNumber.clear();
         infoBoxManager.removeIf(SoulWarsInfoBox.class::isInstance);
     }
 
-    void parseChatMessage(final String chatMessage, final WorldPoint location, final int numFragments)
+    void parseChatMessage(final String chatMessage, final WorldPoint location)
     {
         if (team == SoulWarsTeam.NONE)
         {
@@ -128,7 +131,7 @@ public class SoulWarsManager {
 
         if (chatMessage.startsWith("You charge the Soul Obelisk with soul fragments"))
         {
-            increaseFragmentsSacrificed(numFragments);
+            increaseFragmentsSacrificed(inventoryFragments);
         } else if (chatMessage.contains("You bury the bones")) {
             increaseBonesBuried();
         } else if (chatMessage.startsWith(team.getPrefix())) {
@@ -171,12 +174,21 @@ public class SoulWarsManager {
     }
 
     // needed for when avatar is low strength and can't sacrifice all fragments
-    public void decreaseFragmentsSacrificed(final int numFragments)
+    private void decreaseFragmentsSacrificed(final int numFragments)
     {
         int fragmentsSacrificedSoFar = resourceToTrackedNumber.getOrDefault(SoulWarsResource.FRAGMENTS_SACRIFICED, 0);
         int totalFragmentsSacrificed = fragmentsSacrificedSoFar - numFragments;
         resourceToTrackedNumber.put(SoulWarsResource.FRAGMENTS_SACRIFICED, totalFragmentsSacrificed);
         updateInfoBox(SoulWarsResource.FRAGMENTS_SACRIFICED, totalFragmentsSacrificed);
+    }
+
+    public void updateFragmentInInventoryCount(final int newNumFragments)
+    {
+        // num fragments decrease so sacrificed but potentially some remain due to low avatar strength
+        if (inventoryFragments > newNumFragments) {
+            decreaseFragmentsSacrificed(newNumFragments);
+        }
+        inventoryFragments = newNumFragments;
     }
 
     public void dealtAvatarDamage(int avatarDamage)
