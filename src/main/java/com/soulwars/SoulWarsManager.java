@@ -34,27 +34,14 @@ public class SoulWarsManager {
     private final EnumMap<SoulWarsResource, SoulWarsInfoBox> resourceToInfoBox = new EnumMap<>(SoulWarsResource.class);
     private final EnumMap<SoulWarsResource, Integer> resourceToTrackedNumber = new EnumMap<>(SoulWarsResource.class);
 
-    // 2167, 2893 | 2157, 2893 | 2167, 2903 | 2157, 2903 blue graveyard
-    // 2248, 2930 | 2258, 2930 | 2248, 2920 | 2258, 2920 red graveyard
-
-    // 2199 - 2214 - 2919 - 2904 Soul obelisk
-
-    private WorldArea west_graveyard = new WorldArea(2157, 2893, 10, 10, 0);
-    private WorldArea east_graveyard = new WorldArea(2248, 2920, 10, 10, 0);
-    private WorldArea obelisk = new WorldArea(2199, 2904, 16, 16, 0);
+    private final WorldArea west_graveyard = new WorldArea(2157, 2893, 11, 11, 0);
+    private final WorldArea east_graveyard = new WorldArea(2248, 2920, 11, 11, 0);
+    private final WorldArea obelisk = new WorldArea(2199, 2904, 16, 16, 0);
 
     void init()
     {
         inSoulWarsGame = true;
         createInfoBoxesFromConfig();
-    }
-
-    public void dealtAvatarDamage(int avatarDamage)
-    {
-        int damageSoFar = resourceToTrackedNumber.getOrDefault(SoulWarsResource.AVATAR_DAMAGE, 0);
-        int totalAvatarDamage = damageSoFar + avatarDamage;
-        resourceToTrackedNumber.put(SoulWarsResource.AVATAR_DAMAGE, totalAvatarDamage);
-        updateInfoBox(SoulWarsResource.AVATAR_DAMAGE, totalAvatarDamage);
     }
 
     private void createInfoBox(final SoulWarsResource resource, final int goal)
@@ -120,17 +107,7 @@ public class SoulWarsManager {
         infoBoxManager.removeIf(SoulWarsInfoBox.class::isInstance);
     }
 
-//2024-11-02 15:03:53 EDT [Client] INFO  com.soulwars.SoulWarsPlugin - <col=ff3232>The red team has taken control of the eastern graveyard!</col>
-//            2024-11-02 15:03:53 EDT [Client] INFO  com.soulwars.SoulWarsManager - <col=ff3232>The red team has taken control of the eastern graveyard!</col>
-//            2024-11-02 15:03:56 EDT [Client] INFO  com.soulwars.SoulWarsPlugin - <col=3366ff>The blue team has taken control of the Soul Obelisk!</col>
-//            2024-11-02 15:03:56 EDT [Client] INFO  com.soulwars.SoulWarsManager - <col=3366ff>The blue team has taken control of the Soul Obelisk!</col>
-//            2024-11-02 15:04:01 EDT [Client] INFO  com.soulwars.SoulWarsPlugin - <col=3366ff>The blue team has taken control of the western graveyard!</col>
-//            2024-11-02 15:04:01 EDT [Client] INFO  com.soulwars.SoulWarsManager - <col=3366ff>The blue team has taken contr
-//2024-11-02 15:07:01 EDT [Client] INFO  com.soulwars.SoulWarsPlugin - You charge the Soul Obelisk with soul fragments and weaken the enemy avatar.
-//2024-11-02 15:07:01 EDT [Client] INFO  com.soulwars.SoulWarsManager - You charge the Soul Obelisk
-    // red east
-    // blue west
-    void parseChatMessage(final String chatMessage, final Optional<WorldPoint> location, final SoulWarsTeam team)
+    void parseChatMessage(final String chatMessage, final Optional<WorldPoint> location, final SoulWarsTeam team, final int numFragments)
     {
         if (!inSoulWarsGame)
         {
@@ -139,7 +116,9 @@ public class SoulWarsManager {
 
         if (chatMessage.startsWith("You charge the Soul Obelisk with soul fragments"))
         {
-            updateInfoBox(SoulWarsResource.FRAGMENTS_SACRIFICED, 24);
+            increaseFragmentsSacrificed(numFragments);
+        } else if (chatMessage.contains("You bury the bones")) {
+            increaseBonesBuried();
         } else if (chatMessage.startsWith(team.getPrefix())) {
             if (location.isEmpty()) {
                 return;
@@ -155,11 +134,45 @@ public class SoulWarsManager {
         }
     }
 
-    private void increaseCaptures() {
+    private void increaseCaptures()
+    {
         int capturesSoFar = resourceToTrackedNumber.getOrDefault(SoulWarsResource.CAPTURES, 0);
         int totalCaptures = capturesSoFar + 1;
         resourceToTrackedNumber.put(SoulWarsResource.CAPTURES, totalCaptures);
         updateInfoBox(SoulWarsResource.CAPTURES, totalCaptures);
+    }
+
+    private void increaseBonesBuried()
+    {
+        int bonesBuriedSoFar = resourceToTrackedNumber.getOrDefault(SoulWarsResource.BONES_BURIED, 0);
+        int totalBonesBuried = bonesBuriedSoFar + 1;
+        resourceToTrackedNumber.put(SoulWarsResource.BONES_BURIED, totalBonesBuried);
+        updateInfoBox(SoulWarsResource.BONES_BURIED, totalBonesBuried);
+    }
+
+    private void increaseFragmentsSacrificed(final int numFragments)
+    {
+        int fragmentsSacrificedSoFar = resourceToTrackedNumber.getOrDefault(SoulWarsResource.FRAGMENTS_SACRIFICED, 0);
+        int totalFragmentsSacrificed = fragmentsSacrificedSoFar + numFragments;
+        resourceToTrackedNumber.put(SoulWarsResource.FRAGMENTS_SACRIFICED, totalFragmentsSacrificed);
+        updateInfoBox(SoulWarsResource.FRAGMENTS_SACRIFICED, totalFragmentsSacrificed);
+    }
+
+    // needed for when avatar is low strength and can't sacrifice all fragments
+    public void decreaseFragmentsSacrificed(final int numFragments)
+    {
+        int fragmentsSacrificedSoFar = resourceToTrackedNumber.getOrDefault(SoulWarsResource.FRAGMENTS_SACRIFICED, 0);
+        int totalFragmentsSacrificed = fragmentsSacrificedSoFar - numFragments;
+        resourceToTrackedNumber.put(SoulWarsResource.FRAGMENTS_SACRIFICED, totalFragmentsSacrificed);
+        updateInfoBox(SoulWarsResource.FRAGMENTS_SACRIFICED, totalFragmentsSacrificed);
+    }
+
+    public void dealtAvatarDamage(int avatarDamage)
+    {
+        int damageSoFar = resourceToTrackedNumber.getOrDefault(SoulWarsResource.AVATAR_DAMAGE, 0);
+        int totalAvatarDamage = damageSoFar + avatarDamage;
+        resourceToTrackedNumber.put(SoulWarsResource.AVATAR_DAMAGE, totalAvatarDamage);
+        updateInfoBox(SoulWarsResource.AVATAR_DAMAGE, totalAvatarDamage);
     }
 
     private static class SoulWarsInfoBox extends InfoBox

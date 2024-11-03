@@ -6,10 +6,7 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.GameTick;
-import net.runelite.api.events.HitsplatApplied;
+import net.runelite.api.events.*;
 import net.runelite.api.kit.KitType;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
@@ -32,12 +29,6 @@ import static net.runelite.api.NpcID.*;
 
 public class SoulWarsPlugin extends Plugin
 {
-
-//		[int] souls = [10534 10535, 10536, 10537]
-//		int wolf = 10533,
-public static final int WOLF_10533 = 10533;
-//		int bones = 25199,
-//		int fragment = 25201,
 //		int red_obe = 40451,
 //		int blue_obe = 40450,
 	private static final ImmutableSet<Integer> AVATARS_IDS = ImmutableSet.of(
@@ -64,6 +55,7 @@ public static final int WOLF_10533 = 10533;
 
 	private int currentRegionId = -1;
 	private SoulWarsTeam team = SoulWarsTeam.NONE;
+	private int numFragments = 0;
 
 	@Override
 	protected void startUp() throws Exception
@@ -135,7 +127,7 @@ public static final int WOLF_10533 = 10533;
 		if (type == ChatMessageType.SPAM || type == ChatMessageType.GAMEMESSAGE)
 		{
 			log.info(event.getMessage());
-			soulWarsManager.parseChatMessage(event.getMessage(), getWorldPoint(), SoulWarsTeam.RED);
+			soulWarsManager.parseChatMessage(event.getMessage(), getWorldPoint(), team, numFragments);
 		}
 	}
 
@@ -157,6 +149,24 @@ public static final int WOLF_10533 = 10533;
 		if (!inSoulWarsGame() && team != SoulWarsTeam.NONE) {
 			team = SoulWarsTeam.NONE;
 			soulWarsManager.reset();
+		}
+	}
+
+	@Subscribe
+	public void onItemContainerChanged(final ItemContainerChanged event) {
+		// Update inventory, update shard count
+		if (event.getContainerId() == InventoryID.INVENTORY.getId()) {
+			ItemContainer inventory = event.getItemContainer();
+			for (final Item item : inventory.getItems()) {
+				if (item.getId() == SoulWarsResource.FRAGMENTS_SACRIFICED.getItemId()) {
+					int prevNumFragments = numFragments;
+					numFragments = item.getQuantity();
+					// num fragments decrease so sacrificed but potentially some remain due to low avatar strength
+					if (prevNumFragments > numFragments) {
+						soulWarsManager.decreaseFragmentsSacrificed(numFragments);
+					}
+				}
+			}
 		}
 	}
 
