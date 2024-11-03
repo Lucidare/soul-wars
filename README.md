@@ -1,4 +1,4 @@
-# RuneLite Soul Wars Tracker Plugin
+# Soul Wars
 
 A RuneLite plugin to track in-game progress during the Soul Wars minigame, keeping a count of:
 - Fragments sacrificed
