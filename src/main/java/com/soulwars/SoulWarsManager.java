@@ -15,7 +15,6 @@ import net.runelite.client.ui.overlay.infobox.InfoBoxPriority;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.EnumMap;
-import java.util.Optional;
 
 @Slf4j
 @Singleton
@@ -120,7 +119,7 @@ public class SoulWarsManager {
         infoBoxManager.removeIf(SoulWarsInfoBox.class::isInstance);
     }
 
-    void parseChatMessage(final String chatMessage, final Optional<WorldPoint> location, final int numFragments)
+    void parseChatMessage(final String chatMessage, final WorldPoint location, final int numFragments)
     {
         if (team == SoulWarsTeam.NONE)
         {
@@ -133,15 +132,15 @@ public class SoulWarsManager {
         } else if (chatMessage.contains("You bury the bones")) {
             increaseBonesBuried();
         } else if (chatMessage.startsWith(team.getPrefix())) {
-            if (location.isEmpty()) {
+            if (location == null) {
                 return;
             }
 
-            if (chatMessage.contains("eastern graveyard") && location.get().isInArea(east_graveyard)) {
+            if (chatMessage.contains("eastern graveyard") && location.isInArea(east_graveyard)) {
                 increaseCaptures();
-            } else if (chatMessage.contains("Soul Obelisk") && location.get().isInArea(obelisk)) {
+            } else if (chatMessage.contains("Soul Obelisk") && location.isInArea(obelisk)) {
                 increaseCaptures();
-            } else if (chatMessage.contains("western graveyard") && location.get().isInArea(west_graveyard)) {
+            } else if (chatMessage.contains("western graveyard") && location.isInArea(west_graveyard)) {
                 increaseCaptures();
             }
         }
@@ -191,7 +190,7 @@ public class SoulWarsManager {
     private static class SoulWarsInfoBox extends InfoBox
     {
         private final int goal;
-        private int count = 0;
+        private int count;
         private Color color = Color.WHITE;
         private final boolean isDecrement;
         private String text;

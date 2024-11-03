@@ -16,8 +16,6 @@ import net.runelite.client.party.PartyService;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
-import java.util.Optional;
-
 import static net.runelite.api.NpcID.*;
 
 @Slf4j
@@ -81,11 +79,6 @@ public class SoulWarsPlugin extends Plugin
 	}
 
 	@Subscribe
-	public void onGameStateChanged(GameStateChanged gameStateChanged)
-	{
-	}
-
-	@Subscribe
 	public void onHitsplatApplied(HitsplatApplied hitsplatApplied)
 	{
 		Actor actor = hitsplatApplied.getActor();
@@ -106,7 +99,7 @@ public class SoulWarsPlugin extends Plugin
 		if (hitsplat.isMine()) {
 			int hit = hitsplat.getAmount();
 			soulWarsManager.dealtAvatarDamage(hit);
-		};
+		}
 	}
 
 	@Provides
@@ -189,13 +182,13 @@ public class SoulWarsPlugin extends Plugin
 		}
 	}
 
-	private Optional<WorldPoint> getWorldPoint()
+	private WorldPoint getWorldPoint()
 	{
 		Player player = client.getLocalPlayer();
 		if (player == null)
 		{
-			return Optional.empty();
+			return null;
 		}
-		return Optional.of(WorldPoint.fromLocalInstance(client, player.getLocalLocation()));
+		return WorldPoint.fromLocalInstance(client, player.getLocalLocation());
 	}
 }

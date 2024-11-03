@@ -8,7 +8,7 @@ public enum SoulWarsResource {
     FRAGMENTS_SACRIFICED("Fragments Sacrificed", ItemID.SOUL_FRAGMENT_25201),
     BONES_BURIED("Bones Buried", ItemID.BONES_25199),
     AVATAR_DAMAGE("Avatar Damage", ItemID.LIL_CREATOR),
-    CAPTURES("Number of Captures", ItemID.OBELISK);
+    CAPTURES("Areas Captured", ItemID.OBELISK);
 
     @Getter(AccessLevel.PACKAGE)
     private final String name;
