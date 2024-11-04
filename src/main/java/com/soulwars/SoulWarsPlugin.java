@@ -71,6 +71,7 @@ public class SoulWarsPlugin extends Plugin
 
 		if (inSoulWarsGame()) {
 			soulWarsManager.init(team);
+			highlightCaptureAreas(player);
 		}
 	}
 
@@ -88,12 +89,7 @@ public class SoulWarsPlugin extends Plugin
 		if (player == null) {
 			return;
 		}
-		int wv = player.getLocalLocation().getWorldView();
-		WorldView worldView = client.getWorldView(wv);
-
-		int[] loadedRegionIds = worldView.getScene().getMapRegions();
-		int[] loadedSoulWarsRegion = Arrays.stream(loadedRegionIds).filter(SOUL_WARS_ARENA_REGIONS::contains).toArray();
-		soulWarsManager.highlightCaptureAreas(loadedSoulWarsRegion, worldView);
+		highlightCaptureAreas(player);
 	}
 
 	@Subscribe
@@ -228,6 +224,15 @@ public class SoulWarsPlugin extends Plugin
 				}
 			}
 		}
+	}
+
+	private void highlightCaptureAreas(Player player) {
+		int wv = player.getLocalLocation().getWorldView();
+		WorldView worldView = client.getWorldView(wv);
+
+		int[] loadedRegionIds = worldView.getScene().getMapRegions();
+		int[] loadedSoulWarsRegion = Arrays.stream(loadedRegionIds).filter(SOUL_WARS_ARENA_REGIONS::contains).toArray();
+		soulWarsManager.highlightCaptureAreas(loadedSoulWarsRegion, worldView);
 	}
 
 	private boolean inSoulWarsGame()
