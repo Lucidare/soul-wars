@@ -1,20 +1,30 @@
 package com.soulwars;
 
 import javax.inject.Singleton;
+
+import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
 
 import com.soulwars.SoulWarsConfig.TrackingMode;
+import net.runelite.api.WorldView;
 import net.runelite.api.coords.WorldArea;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBox;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxPriority;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.stream.Collectors;
+
+import static net.runelite.api.NpcID.AVATAR_OF_CREATION_10531;
+import static net.runelite.api.NpcID.AVATAR_OF_DESTRUCTION_10532;
 
 @Slf4j
 @Singleton
@@ -28,6 +38,8 @@ public class SoulWarsManager {
     private ItemManager itemManager;
     @Inject
     private InfoBoxManager infoBoxManager;
+    @Inject
+    private OverlayManager overlayManager;
 
     private final EnumMap<SoulWarsResource, SoulWarsInfoBox> resourceToInfoBox = new EnumMap<>(SoulWarsResource.class);
     private final EnumMap<SoulWarsResource, Integer> resourceToTrackedNumber = new EnumMap<>(SoulWarsResource.class);
@@ -35,17 +47,26 @@ public class SoulWarsManager {
     private final WorldArea west_graveyard = new WorldArea(2157, 2893, 11, 11, 0);
     private final WorldArea east_graveyard = new WorldArea(2248, 2920, 11, 11, 0);
     private final WorldArea obelisk = new WorldArea(2199, 2904, 16, 16, 0);
+    static final ImmutableSet<Integer> SOUL_WARS_ARENA_REGIONS = ImmutableSet.of(
+            SoulWarsRegion.WEST_REGION.regionId, SoulWarsRegion.OBELISK_REGION.regionId, SoulWarsRegion.EAST_REGION.regionId
+    );
+    static final ImmutableSet<Integer> AVATARS_IDS = ImmutableSet.of(
+            AVATAR_OF_CREATION_10531, AVATAR_OF_DESTRUCTION_10532
+    );
+    static final int VARBIT_SOUL_WARS = 3815;
 
     private SoulWarsTeam team = SoulWarsTeam.NONE;
     private SoulWarsTeam west_graveyard_control = SoulWarsTeam.NONE;
     private SoulWarsTeam obelisk_control = SoulWarsTeam.NONE;
     private SoulWarsTeam east_graveyard_control = SoulWarsTeam.NONE;
     private int inventoryFragments;
+    EnumMap<SoulWarsRegion, ArrayList<CaptureAreaTile>> regionToCaptureAreaTiles = new EnumMap<>(SoulWarsRegion.class);
 
     void init(SoulWarsTeam soulWarsTeam)
     {
         team = soulWarsTeam;
         inventoryFragments = 0;
+        regionToCaptureAreaTiles.clear();
         createInfoBoxesFromConfig();
     }
 
@@ -54,14 +75,14 @@ public class SoulWarsManager {
         final boolean isDecrement = config.trackingMode() == TrackingMode.DECREMENT;
 
         // use team cape for captures
-        int itemId = resource == SoulWarsResource.CAPTURES ? team.getItemId() : resource.getItemId();
+        int itemId = resource == SoulWarsResource.CAPTURES ? team.itemId : resource.itemId;
 
         final SoulWarsInfoBox infoBox = new SoulWarsInfoBox(
                 itemManager.getImage(itemId),
                 plugin,
                 goal,
                 isDecrement,
-                resource.getName()
+                resource.name
         );
 
         resourceToInfoBox.put(resource, infoBox);
@@ -91,6 +112,7 @@ public class SoulWarsManager {
         infoBoxManager.removeIf(SoulWarsInfoBox.class::isInstance);
         createInfoBoxesFromConfig();
     }
+
     private void updateInfoBox(final SoulWarsResource resource, final int count)
     {
         final SoulWarsInfoBox infoBox = resourceToInfoBox.get(resource);
@@ -107,6 +129,26 @@ public class SoulWarsManager {
             infoBoxManager.removeInfoBox(infoBox);
             resourceToInfoBox.remove(resource);
         }
+    }
+
+    public void highlightCaptureAreas(int[] loadedRegionIds, WorldView worldView) {
+        if (ArrayUtils.contains(loadedRegionIds, SoulWarsRegion.WEST_REGION.regionId)) {
+            regionToCaptureAreaTiles.put(SoulWarsRegion.WEST_REGION, (ArrayList<CaptureAreaTile>) west_graveyard.toWorldPointList().stream().map(point -> new CaptureAreaTile(SoulWarsRegion.WEST_REGION, point, west_graveyard_control.color, worldView)).collect(Collectors.toList()));
+        }
+        if (ArrayUtils.contains(loadedRegionIds, SoulWarsRegion.OBELISK_REGION.regionId)) {
+            regionToCaptureAreaTiles.put(SoulWarsRegion.OBELISK_REGION, (ArrayList<CaptureAreaTile>) obelisk.toWorldPointList().stream().map(point -> new CaptureAreaTile(SoulWarsRegion.OBELISK_REGION, point, obelisk_control.color, worldView)).collect(Collectors.toList()));
+        }
+        if (ArrayUtils.contains(loadedRegionIds, SoulWarsRegion.EAST_REGION.regionId)) {
+            regionToCaptureAreaTiles.put(SoulWarsRegion.EAST_REGION, (ArrayList<CaptureAreaTile>) east_graveyard.toWorldPointList().stream().map(point -> new CaptureAreaTile(SoulWarsRegion.EAST_REGION, point, east_graveyard_control.color, worldView)).collect(Collectors.toList()));
+        }
+    }
+
+    void updateCaptureAreas(SoulWarsRegion region, Color color) {
+        ArrayList<CaptureAreaTile> currentTiles = regionToCaptureAreaTiles.get(region);
+        for (CaptureAreaTile tile:currentTiles) {
+            tile.updateColor(color);
+        }
+        regionToCaptureAreaTiles.put(region, currentTiles);
     }
 
     public void reset()
@@ -129,36 +171,42 @@ public class SoulWarsManager {
             increaseFragmentsSacrificed(inventoryFragments);
         } else if (chatMessage.contains("You bury the bones")) {
             increaseBonesBuried();
-        } else if (chatMessage.startsWith(SoulWarsTeam.RED.getPrefix())) {
+        } else if (chatMessage.startsWith(SoulWarsTeam.RED.prefix)) {
             if (chatMessage.contains("eastern graveyard")) {
                 east_graveyard_control = SoulWarsTeam.RED;
+                updateCaptureAreas(SoulWarsRegion.EAST_REGION, SoulWarsTeam.RED.color);
                 if (team == SoulWarsTeam.RED && location.isInArea(east_graveyard)) {
                     increaseCaptures();
                 }
             } else if (chatMessage.contains("Soul Obelisk")) {
                 obelisk_control = SoulWarsTeam.RED;
+                updateCaptureAreas(SoulWarsRegion.OBELISK_REGION, SoulWarsTeam.RED.color);
                 if (team == SoulWarsTeam.RED && location.isInArea(obelisk)) {
                     increaseCaptures();
                 }
             } else if (chatMessage.contains("western graveyard")) {
                 west_graveyard_control = SoulWarsTeam.RED;
+                updateCaptureAreas(SoulWarsRegion.WEST_REGION, SoulWarsTeam.RED.color);
                 if (team == SoulWarsTeam.RED && location.isInArea(west_graveyard)) {
                     increaseCaptures();
                 }
             }
-        } else if (chatMessage.startsWith(SoulWarsTeam.BLUE.getPrefix())) {
+        } else if (chatMessage.startsWith(SoulWarsTeam.BLUE.prefix)) {
             if (chatMessage.contains("eastern graveyard")) {
                 east_graveyard_control = SoulWarsTeam.BLUE;
+                updateCaptureAreas(SoulWarsRegion.EAST_REGION, SoulWarsTeam.BLUE.color);
                 if (team == SoulWarsTeam.BLUE && location.isInArea(east_graveyard)) {
                     increaseCaptures();
                 }
             } else if (chatMessage.contains("Soul Obelisk")) {
                 obelisk_control = SoulWarsTeam.BLUE;
+                updateCaptureAreas(SoulWarsRegion.OBELISK_REGION, SoulWarsTeam.BLUE.color);
                 if (team == SoulWarsTeam.BLUE && location.isInArea(obelisk)) {
                     increaseCaptures();
                 }
             } else if (chatMessage.contains("western graveyard")) {
                 west_graveyard_control = SoulWarsTeam.BLUE;
+                updateCaptureAreas(SoulWarsRegion.WEST_REGION, SoulWarsTeam.BLUE.color);
                 if (team == SoulWarsTeam.BLUE && location.isInArea(west_graveyard)) {
                     increaseCaptures();
                 }

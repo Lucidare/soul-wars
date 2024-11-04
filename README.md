@@ -11,10 +11,11 @@ Set the target goals in the config.
 Addition features:
 - Prevents fragment sacrifices when obelisk is not captured
 - Prevents bone buries when graveyard is not captured
+- Highlight capture areas
 
 ## Screenshots
 
-![Default Config](images/default_config.png) ![Infoboxes](images/infoboxes.png) ![Results](images/results.png)
+![Default Config](images/default_config.png) ![Infoboxes](images/infoboxes.png) ![Results](images/results.png)![Red Obelisk](images/red_obelisk_area.png)![Blue Obelisk](images/blue_obelisk_area.png)
 
 ## License
 This plugin is licensed under the BSD 2-Clause License. See the [LICENSE](LICENSE) file for details.
