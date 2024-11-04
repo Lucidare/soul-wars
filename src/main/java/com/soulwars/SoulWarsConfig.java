@@ -170,6 +170,36 @@ public interface SoulWarsConfig extends Config
 		return true;
 	}
 
+	@ConfigSection(
+			name = "Capture Areas",
+			description = "Configuration settings related to rendering capture areas.",
+			position = 3
+	)
+	String captureAreas = "Capture Areas";
+
+	@ConfigItem(
+		keyName = "highlightCaptureAreas",
+		name = "Highlight capture areas",
+		description = "highlight the capture areas.",
+		position = 1,
+		section = captureAreas
+	)
+	default boolean highlightCaptureAreas()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "fillOpacity",
+			name = "Fill Opacity",
+			description = "Opacity of the tile fill color for capture areas",
+			position = 2,
+			section = captureAreas
+	)
+	default int fillOpacity() {
+		return 50;
+	}
+
 	// Constants
 
 	@Getter

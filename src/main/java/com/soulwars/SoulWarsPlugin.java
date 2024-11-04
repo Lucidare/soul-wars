@@ -1,6 +1,5 @@
 package com.soulwars;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +14,11 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.party.PartyService;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.overlay.OverlayManager;
 
-import static net.runelite.api.NpcID.*;
+import java.util.Arrays;
+
+import static com.soulwars.SoulWarsManager.*;
 
 @Slf4j
 @PluginDescriptor(
@@ -40,17 +42,19 @@ public class SoulWarsPlugin extends Plugin
 	private PartyService partyService;
 	@Inject
 	private SoulWarsManager soulWarsManager;
+	@Inject
+	private OverlayManager overlayManager;
 
-	private static final ImmutableSet<Integer> AVATARS_IDS = ImmutableSet.of(
-			AVATAR_OF_CREATION_10531, AVATAR_OF_DESTRUCTION_10532
-	);
-	private static final int VARBIT_SOUL_WARS = 3815;
+	private CaptureAreaOverlay overlay;
 	private static final int INVENTORY_CLICK = 57;
 	private SoulWarsTeam team = SoulWarsTeam.NONE;
 
 	@Override
 	protected void startUp() throws Exception
 	{
+		overlay = new CaptureAreaOverlay(soulWarsManager, client, config);
+		overlayManager.add(overlay);
+
 		// Weird edge case: Turned on plugin while in game
 		// determine team by checking cape instead
 		Player player = client.getLocalPlayer();
@@ -59,9 +63,9 @@ public class SoulWarsPlugin extends Plugin
 			return;
 		}
 		int capeId = player.getPlayerComposition().getEquipmentId(KitType.CAPE);
-		if (capeId == SoulWarsTeam.BLUE.getItemId()) {
+		if (capeId == SoulWarsTeam.BLUE.itemId) {
 			team = SoulWarsTeam.BLUE;
-		} else if (capeId == SoulWarsTeam.RED.getItemId()) {
+		} else if (capeId == SoulWarsTeam.RED.itemId) {
 			team = SoulWarsTeam.RED;
 		}
 
@@ -73,7 +77,23 @@ public class SoulWarsPlugin extends Plugin
 	@Override
 	protected void shutDown() throws Exception
 	{
+		overlayManager.remove(overlay);
 		soulWarsManager.reset();
+	}
+
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged gameStateChanged) {
+		Player player = client.getLocalPlayer();
+		if (player == null) {
+			return;
+		}
+		int wv = player.getLocalLocation().getWorldView();
+		WorldView worldView = client.getWorldView(wv);
+
+		int[] loadedRegionIds = worldView.getScene().getMapRegions();
+		int[] loadedSoulWarsRegion = Arrays.stream(loadedRegionIds).filter(SOUL_WARS_ARENA_REGIONS::contains).toArray();
+		soulWarsManager.highlightCaptureAreas(loadedSoulWarsRegion);
 	}
 
 	@Subscribe
@@ -137,7 +157,7 @@ public class SoulWarsPlugin extends Plugin
 		if (event.getContainerId() == InventoryID.INVENTORY.getId()) {
 			ItemContainer inventory = event.getItemContainer();
 			for (final Item item : inventory.getItems()) {
-				if (item.getId() == SoulWarsResource.FRAGMENTS_SACRIFICED.getItemId()) {
+				if (item.getId() == SoulWarsResource.FRAGMENTS_SACRIFICED.itemId) {
 					foundFragments = true;
 					soulWarsManager.updateFragmentInInventoryCount(item.getQuantity());
 				}
@@ -160,9 +180,9 @@ public class SoulWarsPlugin extends Plugin
 
 			// joined game
 			if (teamNum != 0) {
-				if (teamNum == SoulWarsTeam.BLUE.getVarbitNum()) {
+				if (teamNum == SoulWarsTeam.BLUE.varbitNum) {
 					team = SoulWarsTeam.BLUE;
-				} else if (teamNum == SoulWarsTeam.RED.getVarbitNum()) {
+				} else if (teamNum == SoulWarsTeam.RED.varbitNum) {
 					team = SoulWarsTeam.RED;
 				}
 				soulWarsManager.reset();
@@ -188,9 +208,9 @@ public class SoulWarsPlugin extends Plugin
 		int itemId = event.getItemId();
 
 		if (config.preventIncorrectSacrifice()) {
-			boolean isObeliskClick = eventId == SoulWarsTeam.NONE.getObeliskId()
-					|| eventId == SoulWarsTeam.RED.getObeliskId()
-					|| eventId == SoulWarsTeam.BLUE.getObeliskId();
+			boolean isObeliskClick = eventId == SoulWarsTeam.NONE.obeliskId
+					|| eventId == SoulWarsTeam.RED.obeliskId
+					|| eventId == SoulWarsTeam.BLUE.obeliskId;
 
 			if (isObeliskClick) {
 				 if (!soulWarsManager.shouldSacrificeObelisk()) {
@@ -200,7 +220,7 @@ public class SoulWarsPlugin extends Plugin
 			}
 		}
 		if (config.preventIncorrectBury()) {
-			boolean isBoneClick = actionId == INVENTORY_CLICK && itemId == SoulWarsResource.BONES_BURIED.getItemId();
+			boolean isBoneClick = actionId == INVENTORY_CLICK && itemId == SoulWarsResource.BONES_BURIED.itemId;
 			if (isBoneClick) {
 				if (!soulWarsManager.shouldBuryBone(getWorldPoint())) {
 					event.consume();
