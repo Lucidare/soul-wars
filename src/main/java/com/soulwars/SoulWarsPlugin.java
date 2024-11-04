@@ -45,10 +45,8 @@ public class SoulWarsPlugin extends Plugin
 			AVATAR_OF_CREATION_10531, AVATAR_OF_DESTRUCTION_10532
 	);
 	private static final int VARBIT_SOUL_WARS = 3815;
+	private static final int INVENTORY_CLICK = 57;
 	private SoulWarsTeam team = SoulWarsTeam.NONE;
-	private int numFragments = 0;
-	//		int red_obelisk = 40451
-	//		int blue_obelisk = 40450
 
 	@Override
 	protected void startUp() throws Exception
@@ -151,11 +149,6 @@ public class SoulWarsPlugin extends Plugin
 		}
 	}
 
-	private boolean inSoulWarsGame()
-	{
-		return team != SoulWarsTeam.NONE;
-	}
-
 	@Subscribe
 	void onVarbitChanged(final VarbitChanged event)
 	{
@@ -181,6 +174,45 @@ public class SoulWarsPlugin extends Plugin
 				soulWarsManager.reset();
 			}
 		}
+	}
+
+	@Subscribe
+	public void onMenuOptionClicked(MenuOptionClicked event)
+	{
+		if (!inSoulWarsGame()) {
+			return;
+		}
+
+		int eventId = event.getId();
+		int actionId = event.getMenuAction().getId();
+		int itemId = event.getItemId();
+
+		if (config.preventIncorrectSacrifice()) {
+			boolean isObeliskClick = eventId == SoulWarsTeam.NONE.getObeliskId()
+					|| eventId == SoulWarsTeam.RED.getObeliskId()
+					|| eventId == SoulWarsTeam.BLUE.getObeliskId();
+
+			if (isObeliskClick) {
+				 if (!soulWarsManager.shouldSacrificeObelisk()) {
+					event.consume();
+					client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Preventing sacrificing on incorrect obelisk.", "Soul Wars");
+				}
+			}
+		}
+		if (config.preventIncorrectBury()) {
+			boolean isBoneClick = actionId == INVENTORY_CLICK && itemId == SoulWarsResource.BONES_BURIED.getItemId();
+			if (isBoneClick) {
+				if (!soulWarsManager.shouldBuryBone(getWorldPoint())) {
+					event.consume();
+					client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Preventing burying on incorrect graveyard.", "Soul Wars");
+				}
+			}
+		}
+	}
+
+	private boolean inSoulWarsGame()
+	{
+		return team != SoulWarsTeam.NONE;
 	}
 
 	private WorldPoint getWorldPoint()

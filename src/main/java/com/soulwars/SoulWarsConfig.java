@@ -5,17 +5,26 @@ import lombok.Getter;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.ConfigSection;
 
 @ConfigGroup(SoulWarsConfig.CONFIG_GROUP)
 public interface SoulWarsConfig extends Config
 {
 	String CONFIG_GROUP = "soul-wars";
 
+	@ConfigSection(
+			name = "Tracking",
+			description = "Configuration settings related to tracking.",
+			position = 0
+	)
+	String trackingSection = "Tracking";
+
 	@ConfigItem(
 			keyName = "trackingMode",
 			name = "Tracking Mode",
 			description = "Increment or decrement resource counters.",
-			position = 1
+			position = 1,
+			section = trackingSection
 	)
 	default TrackingMode trackingMode()
 	{
@@ -26,7 +35,8 @@ public interface SoulWarsConfig extends Config
 			keyName = "removedWhenGoalReached",
 			name = "Remove when goal reached",
 			description = "Remove counters when desired number is reached.",
-			position = 2
+			position = 2,
+			section = trackingSection
 	)
 	default boolean removedWhenGoalReached()
 	{
@@ -37,7 +47,8 @@ public interface SoulWarsConfig extends Config
 			keyName = "showFragmentsSacrificed",
 			name = "Show fragments sacrificed",
 			description = "Display number of fragments sacrificed",
-			position = 3
+			position = 3,
+			section = trackingSection
 	)
 	default boolean showFragmentsSacrificed()
 	{
@@ -48,7 +59,8 @@ public interface SoulWarsConfig extends Config
 			keyName = "fragmentsSacrificed",
 			name = "Fragments Sacrificed",
 			description = "The desired number of fragments to sacrifice.",
-			position = 4
+			position = 4,
+			section = trackingSection
 	)
 	default int fragmentsSacrificed()
 	{
@@ -59,7 +71,8 @@ public interface SoulWarsConfig extends Config
 			keyName = "showAvatarDamage",
 			name = "Show avatar damage",
 			description = "Display amount of damage you've done to the avatar",
-			position = 5
+			position = 5,
+			section = trackingSection
 	)
 	default boolean showAvatarDamage()
 	{
@@ -70,7 +83,8 @@ public interface SoulWarsConfig extends Config
 			keyName = "avatarDamage",
 			name = "Avatar Damage",
 			description = "The desired number of avatar damage.",
-			position = 6
+			position = 6,
+			section = trackingSection
 	)
 	default int avatarDamage()
 	{
@@ -81,7 +95,8 @@ public interface SoulWarsConfig extends Config
 			keyName = "showBonesBuried",
 			name = "Show bones buried",
 			description = "Display number of bones you've buried in your graveyard",
-			position = 7
+			position = 7,
+			section = trackingSection
 	)
 	default boolean showBonesBuried()
 	{
@@ -92,7 +107,8 @@ public interface SoulWarsConfig extends Config
 			keyName = "bonesBuried",
 			name = "Bones Buried",
 			description = "The desired number of bones buried.",
-			position = 8
+			position = 8,
+			section = trackingSection
 	)
 	default int bonesBuried()
 	{
@@ -103,7 +119,8 @@ public interface SoulWarsConfig extends Config
 			keyName = "showCaptures",
 			name = "Show captures",
 			description = "Display number of times you've captured an obelisk or graveyard",
-			position = 9
+			position = 9,
+			section = trackingSection
 	)
 	default boolean showCaptures()
 	{
@@ -114,11 +131,43 @@ public interface SoulWarsConfig extends Config
 			keyName = "captures",
 			name = "Captures",
 			description = "The desired number of captures.",
-			position = 10
+			position = 10,
+			section = trackingSection
 	)
 	default int captures()
 	{
 		return 6;
+	}
+
+	@ConfigSection(
+			name = "Prevention",
+			description = "Configuration settings related to prevention.",
+			position = 2
+	)
+	String preventionSection = "Prevention";
+
+	@ConfigItem(
+			keyName = "preventIncorrectSacrifice",
+			name = "Prevent incorrect sacrifice",
+			description = "Prevent sacrificing fragments when obelisk is not captured.",
+			position = 1,
+			section = preventionSection
+	)
+	default boolean preventIncorrectSacrifice()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "preventIncorrectBury",
+			name = "Prevent incorrect bone bury",
+			description = "Prevent burying bones when graveyard is not captured.",
+			position = 2,
+			section = preventionSection
+	)
+	default boolean preventIncorrectBury()
+	{
+		return true;
 	}
 
 	// Constants

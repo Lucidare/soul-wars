@@ -37,6 +37,9 @@ public class SoulWarsManager {
     private final WorldArea obelisk = new WorldArea(2199, 2904, 16, 16, 0);
 
     private SoulWarsTeam team = SoulWarsTeam.NONE;
+    private SoulWarsTeam west_graveyard_control = SoulWarsTeam.NONE;
+    private SoulWarsTeam obelisk_control = SoulWarsTeam.NONE;
+    private SoulWarsTeam east_graveyard_control = SoulWarsTeam.NONE;
     private int inventoryFragments;
 
     void init(SoulWarsTeam soulWarsTeam)
@@ -50,17 +53,9 @@ public class SoulWarsManager {
     {
         final boolean isDecrement = config.trackingMode() == TrackingMode.DECREMENT;
 
-        int itemId = resource.getItemId();
+        // use team cape for captures
+        int itemId = resource == SoulWarsResource.CAPTURES ? team.getItemId() : resource.getItemId();
 
-        // update captures image to be team cape instead of default obe
-        if (resource == SoulWarsResource.CAPTURES) {
-            if (team == SoulWarsTeam.RED)
-            {
-                itemId = SoulWarsTeam.RED.getItemId();
-            } else if (team == SoulWarsTeam.BLUE) {
-                itemId = SoulWarsTeam.BLUE.getItemId();
-            }
-        }
         final SoulWarsInfoBox infoBox = new SoulWarsInfoBox(
                 itemManager.getImage(itemId),
                 plugin,
@@ -124,7 +119,7 @@ public class SoulWarsManager {
 
     void parseChatMessage(final String chatMessage, final WorldPoint location)
     {
-        if (team == SoulWarsTeam.NONE)
+        if (team == SoulWarsTeam.NONE || location == null)
         {
             return;
         }
@@ -134,19 +129,57 @@ public class SoulWarsManager {
             increaseFragmentsSacrificed(inventoryFragments);
         } else if (chatMessage.contains("You bury the bones")) {
             increaseBonesBuried();
-        } else if (chatMessage.startsWith(team.getPrefix())) {
-            if (location == null) {
-                return;
+        } else if (chatMessage.startsWith(SoulWarsTeam.RED.getPrefix())) {
+            if (chatMessage.contains("eastern graveyard")) {
+                east_graveyard_control = SoulWarsTeam.RED;
+                if (team == SoulWarsTeam.RED && location.isInArea(east_graveyard)) {
+                    increaseCaptures();
+                }
+            } else if (chatMessage.contains("Soul Obelisk")) {
+                obelisk_control = SoulWarsTeam.RED;
+                if (team == SoulWarsTeam.RED && location.isInArea(obelisk)) {
+                    increaseCaptures();
+                }
+            } else if (chatMessage.contains("western graveyard")) {
+                west_graveyard_control = SoulWarsTeam.RED;
+                if (team == SoulWarsTeam.RED && location.isInArea(west_graveyard)) {
+                    increaseCaptures();
+                }
             }
-
-            if (chatMessage.contains("eastern graveyard") && location.isInArea(east_graveyard)) {
-                increaseCaptures();
-            } else if (chatMessage.contains("Soul Obelisk") && location.isInArea(obelisk)) {
-                increaseCaptures();
-            } else if (chatMessage.contains("western graveyard") && location.isInArea(west_graveyard)) {
-                increaseCaptures();
+        } else if (chatMessage.startsWith(SoulWarsTeam.BLUE.getPrefix())) {
+            if (chatMessage.contains("eastern graveyard")) {
+                east_graveyard_control = SoulWarsTeam.BLUE;
+                if (team == SoulWarsTeam.BLUE && location.isInArea(east_graveyard)) {
+                    increaseCaptures();
+                }
+            } else if (chatMessage.contains("Soul Obelisk")) {
+                obelisk_control = SoulWarsTeam.BLUE;
+                if (team == SoulWarsTeam.BLUE && location.isInArea(obelisk)) {
+                    increaseCaptures();
+                }
+            } else if (chatMessage.contains("western graveyard")) {
+                west_graveyard_control = SoulWarsTeam.BLUE;
+                if (team == SoulWarsTeam.BLUE && location.isInArea(west_graveyard)) {
+                    increaseCaptures();
+                }
             }
         }
+    }
+
+    public boolean shouldSacrificeObelisk() {
+        return obelisk_control == team;
+    }
+
+    public boolean shouldBuryBone(final WorldPoint location) {
+        if (location == null) {
+            return false;
+        }
+        if (location.isInArea(west_graveyard)) {
+            return west_graveyard_control == team;
+        } else if (location.isInArea(east_graveyard)) {
+            return east_graveyard_control == team;
+        }
+        return false;
     }
 
     private void increaseCaptures()
