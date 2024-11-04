@@ -8,6 +8,10 @@ A RuneLite plugin to track in-game progress during the Soul Wars minigame, keepi
 
 Set the target goals in the config.
 
+Addition features:
+- Prevents fragment sacrifices when obelisk is not captured
+- Prevents bone buries when graveyard is not captured
+
 ## Screenshots
 
 ![Default Config](images/default_config.png) ![Infoboxes](images/infoboxes.png) ![Results](images/results.png)
