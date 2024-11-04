@@ -154,6 +154,10 @@ public class SoulWarsManager {
     public void reset()
     {
         team = SoulWarsTeam.NONE;
+        west_graveyard_control = SoulWarsTeam.NONE;
+        obelisk_control = SoulWarsTeam.NONE;
+        east_graveyard_control = SoulWarsTeam.NONE;
+        regionToCaptureAreaTiles.clear();
         inventoryFragments = 0;
         resourceToTrackedNumber.clear();
         infoBoxManager.removeIf(SoulWarsInfoBox.class::isInstance);
