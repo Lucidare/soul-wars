@@ -31,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Perspective;
 import net.runelite.api.Player;
-import net.runelite.api.WorldView;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.overlay.Overlay;
@@ -41,11 +40,10 @@ import net.runelite.client.ui.overlay.OverlayUtil;
 
 import javax.inject.Inject;
 import java.awt.*;
-import java.util.Collection;
+import java.util.ArrayList;
 
 @Slf4j
 public class CaptureAreaOverlay extends Overlay {
-    private static final int MAX_DRAW_DISTANCE = 32;
 
     @Inject
     private final SoulWarsManager soulWarsManager;
@@ -65,20 +63,21 @@ public class CaptureAreaOverlay extends Overlay {
 
     @Override
     public Dimension render(Graphics2D graphics2D) {
-        if (soulWarsManager.loadedCaptureTiles.isEmpty() || !config.highlightCaptureAreas()) {
+        if (soulWarsManager.regionToCaptureAreaTiles.isEmpty() || !config.highlightCaptureAreas()) {
             return null;
         }
 
         Stroke stroke = new BasicStroke((float) 0);
-        for (final WorldPoint worldPoint : soulWarsManager.loadedCaptureTiles) {
-            Color tileColor = Color.GRAY;
-            drawTile(graphics2D, worldPoint, tileColor, stroke);
+        for (final ArrayList<CaptureAreaTile> captureAreaTiles : soulWarsManager.regionToCaptureAreaTiles.values()) {
+            for (final CaptureAreaTile tile: captureAreaTiles) {
+                drawTile(graphics2D, tile, stroke);
+            }
         }
 
         return null;
     }
 
-    private void drawTile(Graphics2D graphics2D, WorldPoint point, Color color, Stroke borderStroke) {
+    private void drawTile(Graphics2D graphics2D, CaptureAreaTile captureAreaTile, Stroke borderStroke) {
         Player player = client.getLocalPlayer();
         if (player == null) {
             return;
@@ -86,21 +85,18 @@ public class CaptureAreaOverlay extends Overlay {
 
         WorldPoint playerLocation = WorldPoint.fromLocalInstance(client, player.getLocalLocation());
 
-        if (point.distanceTo(playerLocation) >= MAX_DRAW_DISTANCE) {
+        if (captureAreaTile.worldPoint.distanceTo(playerLocation) >= config.maxDrawDistance()) {
             return;
         }
 
-        int wv = player.getLocalLocation().getWorldView();
-        WorldView worldView = client.getWorldView(wv);
-        Collection<WorldPoint> instancedWPs = WorldPoint.toLocalInstance(worldView, point);
-        for (WorldPoint localWP: instancedWPs) {
-            LocalPoint lp = LocalPoint.fromWorld(worldView, localWP);
+        for (LocalPoint lp: captureAreaTile.localPoint) {
             if (lp == null) {
                 return;
             }
 
             Polygon poly = Perspective.getCanvasTilePoly(client, lp);
             if (poly != null) {
+                Color color = captureAreaTile.color;
                 Color fillColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), config.fillOpacity());
                 OverlayUtil.renderPolygon(graphics2D, poly, color, fillColor, borderStroke);
             }

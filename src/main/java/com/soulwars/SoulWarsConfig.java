@@ -190,10 +190,21 @@ public interface SoulWarsConfig extends Config
 	}
 
 	@ConfigItem(
+			keyName = "maxDrawDistance",
+			name = "Max Draw Distance",
+			description = "The max draw distance of the capture areas",
+			position = 2,
+			section = captureAreas
+	)
+	default int maxDrawDistance() {
+		return 32;
+	}
+
+	@ConfigItem(
 			keyName = "fillOpacity",
 			name = "Fill Opacity",
 			description = "Opacity of the tile fill color for capture areas",
-			position = 2,
+			position = 3,
 			section = captureAreas
 	)
 	default int fillOpacity() {

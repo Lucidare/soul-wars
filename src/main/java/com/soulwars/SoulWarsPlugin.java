@@ -93,7 +93,7 @@ public class SoulWarsPlugin extends Plugin
 
 		int[] loadedRegionIds = worldView.getScene().getMapRegions();
 		int[] loadedSoulWarsRegion = Arrays.stream(loadedRegionIds).filter(SOUL_WARS_ARENA_REGIONS::contains).toArray();
-		soulWarsManager.highlightCaptureAreas(loadedSoulWarsRegion);
+		soulWarsManager.highlightCaptureAreas(loadedSoulWarsRegion, worldView);
 	}
 
 	@Subscribe
