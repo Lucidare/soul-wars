@@ -44,9 +44,11 @@ public class SoulWarsManager {
     private final EnumMap<SoulWarsResource, SoulWarsInfoBox> resourceToInfoBox = new EnumMap<>(SoulWarsResource.class);
     private final EnumMap<SoulWarsResource, Integer> resourceToTrackedNumber = new EnumMap<>(SoulWarsResource.class);
 
+    private final WorldArea blue_spawn = new WorldArea(2136, 2900, 8, 11, 0);
     private final WorldArea west_graveyard = new WorldArea(2157, 2893, 11, 11, 0);
-    private final WorldArea east_graveyard = new WorldArea(2248, 2920, 11, 11, 0);
     private final WorldArea obelisk = new WorldArea(2199, 2904, 16, 16, 0);
+    private final WorldArea east_graveyard = new WorldArea(2248, 2920, 11, 11, 0);
+    private final WorldArea red_spawn = new WorldArea(2271, 2914, 8, 11, 0);
     static final ImmutableSet<Integer> SOUL_WARS_ARENA_REGIONS = ImmutableSet.of(
             SoulWarsRegion.WEST_REGION.regionId, SoulWarsRegion.OBELISK_REGION.regionId, SoulWarsRegion.EAST_REGION.regionId
     );
@@ -230,8 +232,9 @@ public class SoulWarsManager {
             return west_graveyard_control == team;
         } else if (location.isInArea(east_graveyard)) {
             return east_graveyard_control == team;
+        } else {
+            return location.isInArea(red_spawn) || location.isInArea(blue_spawn);
         }
-        return false;
     }
 
     private void increaseCaptures()
