@@ -15,6 +15,7 @@ Addition features:
 - Prevents fragment sacrifices when obelisk is not captured
 - Prevents bone buries when graveyard is not captured
 - Highlight capture areas
+- Notify when activity level below set threshold
 
 ## Screenshots
 
