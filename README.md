@@ -1,5 +1,8 @@
 # Soul Wars
 
+[![Active Installs](http://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/installs/plugin/soul-wars)](https://runelite.net/plugin-hub/show/soul-wars)
+[![Plugin Rank](http://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/rank/plugin/soul-wars)](https://runelite.net/plugin-hub/show/soul-wars)
+
 A RuneLite plugin to track in-game progress during the Soul Wars minigame, keeping a count of:
 - Fragments sacrificed
 - Avatar damage dealt
