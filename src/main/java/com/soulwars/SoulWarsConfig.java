@@ -211,6 +211,36 @@ public interface SoulWarsConfig extends Config
 		return 50;
 	}
 
+	@ConfigSection(
+			name = "Idle Activity Notifier",
+			description = "Configuration settings related to activity timer.",
+			position = 4
+	)
+	String activityNotifier = "Activity Notifier";
+
+	@ConfigItem(
+			keyName = "shouldNotify",
+			name = "Enable activity notification",
+			description = "Sends a notification to be sent when below set activity level.",
+			position = 1,
+			section = activityNotifier
+	)
+	default boolean shouldNotify()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "activityNotifPercent",
+			name = "Notification Threshold",
+			description = "The percent of activity when you want to retrieve a notification",
+			position = 2,
+			section = activityNotifier
+	)
+	default int activityNotifThreshold() {
+		return 20;
+	}
+
 	// Constants
 
 	@Getter

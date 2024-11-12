@@ -189,6 +189,9 @@ public class SoulWarsPlugin extends Plugin
 				team = SoulWarsTeam.NONE;
 				soulWarsManager.reset();
 			}
+		} else if (varbit == VARBIT_SOUL_WARS_ACTIVITY) {
+			int activityNum = event.getValue();
+			soulWarsManager.updateActivityBar(activityNum);
 		}
 	}
 

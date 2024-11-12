@@ -10,6 +10,7 @@ import com.soulwars.SoulWarsConfig.TrackingMode;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.WorldArea;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.client.Notifier;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBox;
@@ -40,6 +41,8 @@ public class SoulWarsManager {
     private InfoBoxManager infoBoxManager;
     @Inject
     private OverlayManager overlayManager;
+    @Inject
+    private Notifier notifier;
 
     private final EnumMap<SoulWarsResource, SoulWarsInfoBox> resourceToInfoBox = new EnumMap<>(SoulWarsResource.class);
     private final EnumMap<SoulWarsResource, Integer> resourceToTrackedNumber = new EnumMap<>(SoulWarsResource.class);
@@ -56,17 +59,21 @@ public class SoulWarsManager {
             AVATAR_OF_CREATION_10531, AVATAR_OF_DESTRUCTION_10532
     );
     static final int VARBIT_SOUL_WARS = 3815;
+    static final int VARBIT_SOUL_WARS_ACTIVITY = 9794;
+    private static final double MAX_ACTIVITY = 800.0;
 
     private SoulWarsTeam team = SoulWarsTeam.NONE;
     private SoulWarsTeam west_graveyard_control = SoulWarsTeam.NONE;
     private SoulWarsTeam obelisk_control = SoulWarsTeam.NONE;
     private SoulWarsTeam east_graveyard_control = SoulWarsTeam.NONE;
     private int inventoryFragments;
+    private boolean currentIsActive = true;
     EnumMap<SoulWarsRegion, ArrayList<CaptureAreaTile>> regionToCaptureAreaTiles = new EnumMap<>(SoulWarsRegion.class);
 
     void init(SoulWarsTeam soulWarsTeam)
     {
         team = soulWarsTeam;
+        currentIsActive = true;
         inventoryFragments = 0;
         regionToCaptureAreaTiles.clear();
         createInfoBoxesFromConfig();
@@ -156,6 +163,7 @@ public class SoulWarsManager {
     public void reset()
     {
         team = SoulWarsTeam.NONE;
+        currentIsActive = true;
         west_graveyard_control = SoulWarsTeam.NONE;
         obelisk_control = SoulWarsTeam.NONE;
         east_graveyard_control = SoulWarsTeam.NONE;
@@ -277,6 +285,18 @@ public class SoulWarsManager {
             decreaseFragmentsSacrificed(numFragments);
         }
         inventoryFragments = numFragments;
+    }
+
+    public void updateActivityBar(final int activityValue)
+    {
+        int threshold = config.activityNotifThreshold();
+        boolean isActive = activityValue/MAX_ACTIVITY > threshold/100.0;
+        if (currentIsActive != isActive) {
+            if (config.shouldNotify() && !isActive) {
+                notifier.notify("Soul Wars activity bar dropping below " + threshold + "%");
+            }
+            currentIsActive = isActive;
+        }
     }
 
     public void dealtAvatarDamage(int avatarDamage)
