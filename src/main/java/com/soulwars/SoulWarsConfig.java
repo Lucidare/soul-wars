@@ -221,7 +221,7 @@ public interface SoulWarsConfig extends Config
 	@ConfigItem(
 			keyName = "shouldNotify",
 			name = "Enable activity notification",
-			description = "Sends a notification to be sent when below set activity level.",
+			description = "Sends a notification when below set activity level.",
 			position = 1,
 			section = activityNotifier
 	)
