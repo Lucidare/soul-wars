@@ -172,12 +172,12 @@ public class SoulWarsManager {
             return;
         }
 
-        if (chatMessage.startsWith("You charge the Soul Obelisk with soul fragments"))
+        if (chatMessage.contains("You charge the Soul Obelisk with soul fragments"))
         {
             increaseFragmentsSacrificed(inventoryFragments);
         } else if (chatMessage.contains("You bury the bones")) {
             increaseBonesBuried();
-        } else if (chatMessage.startsWith(SoulWarsTeam.RED.prefix)) {
+        } else if (chatMessage.contains(SoulWarsTeam.RED.chatIdentifier)) {
             if (chatMessage.contains("eastern graveyard")) {
                 east_graveyard_control = SoulWarsTeam.RED;
                 updateCaptureAreas(SoulWarsRegion.EAST_REGION, SoulWarsTeam.RED.color);
@@ -197,7 +197,7 @@ public class SoulWarsManager {
                     increaseCaptures();
                 }
             }
-        } else if (chatMessage.startsWith(SoulWarsTeam.BLUE.prefix)) {
+        } else if (chatMessage.contains(SoulWarsTeam.BLUE.chatIdentifier)) {
             if (chatMessage.contains("eastern graveyard")) {
                 east_graveyard_control = SoulWarsTeam.BLUE;
                 updateCaptureAreas(SoulWarsRegion.EAST_REGION, SoulWarsTeam.BLUE.color);

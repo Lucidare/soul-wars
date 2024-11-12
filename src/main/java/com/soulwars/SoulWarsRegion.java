@@ -19,18 +19,18 @@ enum SoulWarsRegion {
 
 enum SoulWarsTeam {
     NONE("", ItemID.OBELISK, 0, ObjectID.SOUL_OBELISK_40449, Color.WHITE),
-    BLUE("<col=3366ff>The blue team", ItemID.BLUE_CAPE_25208, 1, ObjectID.SOUL_OBELISK_40450, Color.BLUE),
-    RED("<col=ff3232>The red team", ItemID.RED_CAPE_25207, 2, ObjectID.SOUL_OBELISK_40451, Color.RED);
+    BLUE("blue team", ItemID.BLUE_CAPE_25208, 1, ObjectID.SOUL_OBELISK_40450, Color.BLUE),
+    RED("red team", ItemID.RED_CAPE_25207, 2, ObjectID.SOUL_OBELISK_40451, Color.RED);
 
-    final String prefix;
+    final String chatIdentifier;
     final int itemId;
     final int varbitNum;
     final int obeliskId;
     final Color color;
 
 
-    SoulWarsTeam(final String prefix, final int itemId, final int varbitNum, final int obeliskId, final Color color) {
-        this.prefix = prefix;
+    SoulWarsTeam(final String chatIdentifier, final int itemId, final int varbitNum, final int obeliskId, final Color color) {
+        this.chatIdentifier = chatIdentifier;
         this.itemId = itemId;
         this.varbitNum = varbitNum;
         this.obeliskId = obeliskId;
