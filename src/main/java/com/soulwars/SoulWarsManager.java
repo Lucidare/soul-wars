@@ -292,10 +292,22 @@ public class SoulWarsManager {
         int threshold = config.activityNotifThreshold();
         boolean isActive = activityValue/MAX_ACTIVITY > threshold/100.0;
         if (currentIsActive != isActive) {
-            if (config.shouldNotify() && !isActive) {
+            if (config.shouldNotifyActivity() && !isActive) {
                 notifier.notify("Soul Wars activity bar dropping below " + threshold + "%");
             }
             currentIsActive = isActive;
+        }
+    }
+
+    public void notifyEnterGame() {
+        if (config.shouldNotifyEnterGame()) {
+            notifier.notify("Entered Soul Wars");
+        }
+    }
+
+    public void notifyLeaveGame() {
+        if (config.shouldNotifyLeaveGame()) {
+            notifier.notify("Left Soul Wars");
         }
     }
 
