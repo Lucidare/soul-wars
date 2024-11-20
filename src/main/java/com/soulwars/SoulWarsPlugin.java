@@ -183,11 +183,13 @@ public class SoulWarsPlugin extends Plugin
 				}
 				soulWarsManager.reset();
 				soulWarsManager.init(team);
+				soulWarsManager.notifyEnterGame();
 			}
 			// left game
 			else {
 				team = SoulWarsTeam.NONE;
 				soulWarsManager.reset();
+				soulWarsManager.notifyLeaveGame();
 			}
 		} else if (varbit == VARBIT_SOUL_WARS_ACTIVITY) {
 			int activityNum = event.getValue();

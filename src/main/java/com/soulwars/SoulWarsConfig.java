@@ -212,33 +212,58 @@ public interface SoulWarsConfig extends Config
 	}
 
 	@ConfigSection(
-			name = "Idle Activity Notifier",
-			description = "Configuration settings related to activity timer.",
+			name = "Notifications",
+			description = "Configuration settings related to notifications.",
 			position = 4
 	)
-	String activityNotifier = "Activity Notifier";
+	String NOTIFIER = "Notifier";
 
 	@ConfigItem(
-			keyName = "shouldNotify",
+			keyName = "shouldNotifyActivity",
 			name = "Enable activity notification",
 			description = "Sends a notification when below set activity level.",
 			position = 1,
-			section = activityNotifier
+			section = NOTIFIER
 	)
-	default boolean shouldNotify()
+	default boolean shouldNotifyActivity()
 	{
 		return true;
 	}
 
 	@ConfigItem(
 			keyName = "activityNotifPercent",
-			name = "Notification Threshold",
+			name = "Activity Threshold",
 			description = "The percent of activity when you want to retrieve a notification",
 			position = 2,
-			section = activityNotifier
+			section = NOTIFIER
 	)
 	default int activityNotifThreshold() {
 		return 20;
+	}
+
+	@ConfigItem(
+			keyName = "shouldNotifyEnterGame",
+			name = "Enable enter game notification",
+			description = "Sends a notification when entering soul wars.",
+			position = 3,
+			section = NOTIFIER
+	)
+
+	default boolean shouldNotifyEnterGame()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "shouldNotifyLeaveGame",
+			name = "Enable leave game notification",
+			description = "Sends a notification when leaving soul wars.",
+			position = 4,
+			section = NOTIFIER
+	)
+	default boolean shouldNotifyLeaveGame()
+	{
+		return true;
 	}
 
 	// Constants
