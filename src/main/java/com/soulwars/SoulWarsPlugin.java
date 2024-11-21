@@ -132,6 +132,11 @@ public class SoulWarsPlugin extends Plugin
 
 		if (inSoulWarsGame()) {
 			soulWarsManager.updateInfoBoxes();
+			Player player = client.getLocalPlayer();
+			if (player == null) {
+				return;
+			}
+			highlightCaptureAreas(player);
 		}
 	}
 

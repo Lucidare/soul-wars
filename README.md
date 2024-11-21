@@ -14,7 +14,7 @@ Set the target goals in the config.
 Addition features:
 - Prevents fragment sacrifices when obelisk is not captured
 - Prevents bone buries when graveyard is not captured
-- Highlight capture areas
+- Highlight capture areas with customizable colors
 - Notify when activity level below set threshold, entering or leaving game
 
 ## Screenshots
