@@ -6,6 +6,10 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Range;
+import net.runelite.client.config.Alpha;
+
+import java.awt.Color;
 
 @ConfigGroup(SoulWarsConfig.CONFIG_GROUP)
 public interface SoulWarsConfig extends Config
@@ -200,6 +204,7 @@ public interface SoulWarsConfig extends Config
 		return 32;
 	}
 
+	@Range(min = 0, max = 255)
 	@ConfigItem(
 			keyName = "fillOpacity",
 			name = "Fill Opacity",
@@ -209,6 +214,32 @@ public interface SoulWarsConfig extends Config
 	)
 	default int fillOpacity() {
 		return 50;
+	}
+
+	@Alpha
+	@ConfigItem(
+			keyName = "redTeamColor",
+			name = "Red Team Color",
+			description = "Color for the red team",
+			position = 4,
+			section = captureAreas
+	)
+	default Color redTeamColor()
+	{
+		return Color.RED;
+	}
+
+	@Alpha
+	@ConfigItem(
+			keyName = "blueTeamColor",
+			name = "Blue Team Color",
+			description = "Color for the blue team",
+			position = 5,
+			section = captureAreas
+	)
+	default Color blueTeamColor()
+	{
+		return Color.BLUE;
 	}
 
 	@ConfigSection(
@@ -230,6 +261,7 @@ public interface SoulWarsConfig extends Config
 		return true;
 	}
 
+	@Range(min = 1, max = 100)
 	@ConfigItem(
 			keyName = "activityNotifPercent",
 			name = "Activity Threshold",

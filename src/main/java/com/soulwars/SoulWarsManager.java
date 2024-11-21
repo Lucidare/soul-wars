@@ -141,14 +141,38 @@ public class SoulWarsManager {
     }
 
     public void highlightCaptureAreas(int[] loadedRegionIds, WorldView worldView) {
+        Color westColor, obeliskColor, eastColor;
+
+        if (west_graveyard_control.color.equals(Color.RED)) {
+            westColor = config.redTeamColor();
+        } else if (west_graveyard_control.color.equals(Color.BLUE)) {
+            westColor = config.blueTeamColor();
+        } else {
+            westColor = west_graveyard_control.color;
+        }
+        if (obelisk_control.color.equals(Color.RED)) {
+            obeliskColor = config.redTeamColor();
+        } else if (obelisk_control.color.equals(Color.BLUE)) {
+            obeliskColor = config.blueTeamColor();
+        } else {
+            obeliskColor = obelisk_control.color;
+        }
+        if (east_graveyard_control.color.equals(Color.RED)) {
+            eastColor = config.redTeamColor();
+        } else if (east_graveyard_control.color.equals(Color.BLUE)) {
+            eastColor = config.blueTeamColor();
+        } else {
+            eastColor = east_graveyard_control.color;
+        }
+
         if (ArrayUtils.contains(loadedRegionIds, SoulWarsRegion.WEST_REGION.regionId)) {
-            regionToCaptureAreaTiles.put(SoulWarsRegion.WEST_REGION, (ArrayList<CaptureAreaTile>) west_graveyard.toWorldPointList().stream().map(point -> new CaptureAreaTile(SoulWarsRegion.WEST_REGION, point, west_graveyard_control.color, worldView)).collect(Collectors.toList()));
+            regionToCaptureAreaTiles.put(SoulWarsRegion.WEST_REGION, (ArrayList<CaptureAreaTile>) west_graveyard.toWorldPointList().stream().map(point -> new CaptureAreaTile(SoulWarsRegion.WEST_REGION, point, westColor, worldView)).collect(Collectors.toList()));
         }
         if (ArrayUtils.contains(loadedRegionIds, SoulWarsRegion.OBELISK_REGION.regionId)) {
-            regionToCaptureAreaTiles.put(SoulWarsRegion.OBELISK_REGION, (ArrayList<CaptureAreaTile>) obelisk.toWorldPointList().stream().map(point -> new CaptureAreaTile(SoulWarsRegion.OBELISK_REGION, point, obelisk_control.color, worldView)).collect(Collectors.toList()));
+            regionToCaptureAreaTiles.put(SoulWarsRegion.OBELISK_REGION, (ArrayList<CaptureAreaTile>) obelisk.toWorldPointList().stream().map(point -> new CaptureAreaTile(SoulWarsRegion.OBELISK_REGION, point, obeliskColor, worldView)).collect(Collectors.toList()));
         }
         if (ArrayUtils.contains(loadedRegionIds, SoulWarsRegion.EAST_REGION.regionId)) {
-            regionToCaptureAreaTiles.put(SoulWarsRegion.EAST_REGION, (ArrayList<CaptureAreaTile>) east_graveyard.toWorldPointList().stream().map(point -> new CaptureAreaTile(SoulWarsRegion.EAST_REGION, point, east_graveyard_control.color, worldView)).collect(Collectors.toList()));
+            regionToCaptureAreaTiles.put(SoulWarsRegion.EAST_REGION, (ArrayList<CaptureAreaTile>) east_graveyard.toWorldPointList().stream().map(point -> new CaptureAreaTile(SoulWarsRegion.EAST_REGION, point, eastColor, worldView)).collect(Collectors.toList()));
         }
     }
 
@@ -188,19 +212,19 @@ public class SoulWarsManager {
         } else if (chatMessage.contains(SoulWarsTeam.RED.chatIdentifier)) {
             if (chatMessage.contains("eastern graveyard")) {
                 east_graveyard_control = SoulWarsTeam.RED;
-                updateCaptureAreas(SoulWarsRegion.EAST_REGION, SoulWarsTeam.RED.color);
+                updateCaptureAreas(SoulWarsRegion.EAST_REGION, config.redTeamColor());
                 if (team == SoulWarsTeam.RED && location.isInArea(east_graveyard)) {
                     increaseCaptures();
                 }
             } else if (chatMessage.contains("Soul Obelisk")) {
                 obelisk_control = SoulWarsTeam.RED;
-                updateCaptureAreas(SoulWarsRegion.OBELISK_REGION, SoulWarsTeam.RED.color);
+                updateCaptureAreas(SoulWarsRegion.OBELISK_REGION, config.redTeamColor());
                 if (team == SoulWarsTeam.RED && location.isInArea(obelisk)) {
                     increaseCaptures();
                 }
             } else if (chatMessage.contains("western graveyard")) {
                 west_graveyard_control = SoulWarsTeam.RED;
-                updateCaptureAreas(SoulWarsRegion.WEST_REGION, SoulWarsTeam.RED.color);
+                updateCaptureAreas(SoulWarsRegion.WEST_REGION, config.redTeamColor());
                 if (team == SoulWarsTeam.RED && location.isInArea(west_graveyard)) {
                     increaseCaptures();
                 }
@@ -208,19 +232,19 @@ public class SoulWarsManager {
         } else if (chatMessage.contains(SoulWarsTeam.BLUE.chatIdentifier)) {
             if (chatMessage.contains("eastern graveyard")) {
                 east_graveyard_control = SoulWarsTeam.BLUE;
-                updateCaptureAreas(SoulWarsRegion.EAST_REGION, SoulWarsTeam.BLUE.color);
+                updateCaptureAreas(SoulWarsRegion.EAST_REGION, config.blueTeamColor());
                 if (team == SoulWarsTeam.BLUE && location.isInArea(east_graveyard)) {
                     increaseCaptures();
                 }
             } else if (chatMessage.contains("Soul Obelisk")) {
                 obelisk_control = SoulWarsTeam.BLUE;
-                updateCaptureAreas(SoulWarsRegion.OBELISK_REGION, SoulWarsTeam.BLUE.color);
+                updateCaptureAreas(SoulWarsRegion.OBELISK_REGION, config.blueTeamColor());
                 if (team == SoulWarsTeam.BLUE && location.isInArea(obelisk)) {
                     increaseCaptures();
                 }
             } else if (chatMessage.contains("western graveyard")) {
                 west_graveyard_control = SoulWarsTeam.BLUE;
-                updateCaptureAreas(SoulWarsRegion.WEST_REGION, SoulWarsTeam.BLUE.color);
+                updateCaptureAreas(SoulWarsRegion.WEST_REGION, config.blueTeamColor());
                 if (team == SoulWarsTeam.BLUE && location.isInArea(west_graveyard)) {
                     increaseCaptures();
                 }
